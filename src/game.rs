@@ -33,6 +33,11 @@ impl GameBuilder {
         self
     }
 
+    pub fn unlimited_rows(mut self, unlimited_rows: bool) -> Self {
+        self.unlimited_rows = unlimited_rows;
+        self
+    }
+
     fn calculate_pegs(&self) -> Vec<u8> {
         if let Some(pegs) = &self.pegs {
             pegs.clone()
@@ -64,7 +69,7 @@ impl Game {
 impl From<GameBuilder> for Game {
     fn from(builder: GameBuilder) -> Self {
         let max_rows = {
-            if builder.unlimited_rows {
+            if !builder.unlimited_rows {
                 builder.max_rows.or(Some(12))
             }
             else {
@@ -144,5 +149,23 @@ mod tests {
             let game = GameBuilder::new().pegs(&[i, i, i, i]).build();
             assert_eq!(game.pegs(), [i, i, i, i]);
         })
+    }
+
+    #[test]
+    fn bulder_max_rows_is_respected() {
+        (1..8).for_each(|i| {
+            let game = GameBuilder::new().max_rows(i).build();
+            assert_eq!(game.max_rows.unwrap(), i);
+        });
+
+        // default should be 12
+        let game = GameBuilder::new().build();
+        assert_eq!(game.max_rows.unwrap(), 12);
+    }
+
+    #[test]
+    fn bulder_unlimited_rows_is_respected() {
+        let game = GameBuilder::new().unlimited_rows(true).build();
+        assert!(game.max_rows.is_none());
     }
 }
